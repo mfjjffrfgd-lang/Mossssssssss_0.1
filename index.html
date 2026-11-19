@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>织己 Weave Myself — 独龙江乡换装 Demo</title>
+<style>
+  :root{
+    --ink:#2d2b28; --paper:#f7f2ea; --line:#d8ccb8;
+    --indigo:#4a5b63; --indigo2:#6c8489; --clay:#a96a4a; --sage:#7d9476; --gold:#c9a227;
+    --shadow:0 6px 20px rgba(60,45,25,.10); --r:16px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;color:var(--ink);background:var(--paper);-webkit-text-size-adjust:100%}
+  body{background:linear-gradient(160deg,#fdfaf5,#f0e9db);overflow-x:hidden}
+  .topbar{position:fixed;top:0;left:0;right:0;height:calc(56px + env(safe-area-inset-top,0px));padding-top:env(safe-area-inset-top,0px);z-index:50;display:flex;align-items:center;justify-content:space-between;padding-left:calc(16px + env(safe-area-inset-left,0px));padding-right:calc(16px + env(safe-area-inset-right,0px));background:rgba(250,246,238,.95);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  .brand{font-size:18px;font-weight:700;letter-spacing:1px;color:var(--indigo);white-space:nowrap}
+  .brand small{font-size:10px;font-weight:400;color:#8a7c66;letter-spacing:.5px;margin-left:4px}
+  .wallet{display:flex;gap:8px;align-items:center;font-size:12px}
+  .coin{background:#fff8e8;border:1px solid var(--line);border-radius:20px;padding:5px 9px;color:#8a6a12;white-space:nowrap}
+  .reset{border:1px solid var(--line);background:transparent;border-radius:20px;padding:7px 11px;cursor:pointer;color:#7a6d58;min-height:44px}
+  main{padding:calc(70px + env(safe-area-inset-top,0px)) calc(16px + env(safe-area-inset-left,0px)) calc(100px + env(safe-area-inset-bottom,0px));max-width:720px;margin:0 auto}
+  .view{display:none;animation:fade .3s ease}.view.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  h2{font-size:22px;margin:0 0 6px;color:var(--indigo)}
+  .sub{font-size:13px;color:#82765f;margin-bottom:18px;line-height:1.6}
+  .panel{background:rgba(255,255,255,.75);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:14px}
+  .btn{border:none;border-radius:12px;padding:12px 20px;font-size:15px;font-weight:600;cursor:pointer;background:var(--indigo);color:#fff;min-height:48px;transition:.15s}
+  .btn:active{transform:scale(.98)}
+  .btn.ghost{background:transparent;color:var(--indigo);border:1px solid var(--indigo)}
+  .btn.warm{background:var(--clay)}
+  /* Hub */
+  .hub{display:grid;grid-template-columns:1fr;gap:14px}
+  .chapter-card{background:linear-gradient(150deg,#4a5b63,#81958c);color:#fff;border-radius:var(--r);padding:22px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .chapter-card:after{content:"独龙江";position:absolute;right:-10px;bottom:-16px;font-size:70px;opacity:.12;font-weight:700;letter-spacing:4px}
+  .chapter-card h3{margin:0 0 8px;font-size:26px}
+  .chapter-card p{opacity:.92;font-size:13px;line-height:1.75;position:relative;z-index:1}
+  .task{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px dashed var(--line)}
+  .task:last-child{border:none}.dot{width:9px;height:9px;border-radius:50%;background:var(--clay);flex:none}
+  .task b{font-size:13px}.task span{font-size:11px;color:#8a7c66}
+  .profile-mini{display:flex;gap:12px;align-items:center;margin:12px 0}
+  .avatar-mini{width:58px;height:58px;border-radius:50%;overflow:hidden;border:2px solid #fff;background:#e5d8c3;flex:none}
+  .tag{display:inline-block;font-size:11px;padding:3px 8px;border-radius:10px;background:#ebe3d4;color:#6b5c44;margin:2px}
+  .notice{font-size:11px;line-height:1.7;color:#6b5c44;background:#f6efe1;border-left:3px solid var(--clay);padding:10px 12px;border-radius:6px}
+  /* 对话 */
+  .dialogue-box{background:#fffdf8;border:1px solid var(--line);border-radius:var(--r);padding:20px 18px;box-shadow:var(--shadow)}
+  .speaker{font-size:12px;color:var(--clay);font-weight:700;letter-spacing:1px;margin-bottom:12px}
+  .dialogue-text{font-size:17px;line-height:1.95;white-space:pre-line}
+  .dialogue-foot{display:flex;justify-content:space-between;align-items:center;margin-top:20px;flex-wrap:wrap;gap:10px}
+  .progress{font-size:12px;color:#9a8d76}
+  .reply-opt{display:block;width:100%;text-align:left;border:1px solid var(--line);background:#fff;border-radius:10px;padding:12px 14px;margin-top:10px;font-size:14px;line-height:1.6;cursor:pointer;min-height:48px}
+  .reply-npc{margin-top:14px;padding:12px 14px;background:#f3eee2;border-left:3px solid var(--sage);border-radius:6px;font-size:15px;line-height:1.8;color:#5b5344}
+  /* 商城 */
+  .shop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+  .item-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;box-shadow:var(--shadow)}
+  .swatch{height:70px;border-radius:8px;margin-bottom:8px;position:relative;overflow:hidden}
+  .swatch svg{width:100%;height:100%}
+  .item-card h4{margin:0 0 4px;font-size:14px}
+  .item-card p{font-size:11px;color:#82765f;margin:0 0 8px;line-height:1.5;min-height:32px}
+  .price{font-weight:700;color:#8a6a12;font-size:12px}
+  .buy{float:right;border:none;background:var(--indigo);color:#fff;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:11px;min-height:40px}
+  .buy.owned{background:#d8cfbf;color:#6b5c44;cursor:default}
+  .fit-hint{font-size:10px;color:var(--sage);line-height:1.5;margin-top:6px}
+  .pattern-lock{font-size:10px;color:var(--clay);margin-top:4px}
+  /* ===== 换装页（参考图布局） ===== */
+  .dress-page{display:flex;flex-direction:column;height:calc(100dvh - 66px - env(safe-area-inset-top,0px));min-height:560px}
+  .dress-header{display:flex;align-items:center;justify-content:space-between;padding:2px 0 8px;flex:none}
+  .dress-header .hd-btn{border:none;background:transparent;font-size:13px;color:var(--indigo);min-height:44px;padding:0 6px;cursor:pointer}
+  .dress-title{text-align:center;font-size:17px;font-weight:700;letter-spacing:1px;color:var(--ink)}
+  .dress-title small{display:block;font-size:10px;font-weight:400;color:#a3947d;letter-spacing:2px;margin-top:2px}
+  .stage{flex:1;min-height:0;position:relative;border-radius:var(--r);border:1px solid var(--line);overflow:hidden;background:linear-gradient(180deg,#f1efe8,#e8e7dd);box-shadow:var(--shadow);touch-action:none}
+  .stage svg{width:100%;height:100%;display:block}
+  .zoom-tools{position:absolute;right:12px;top:12px;display:flex;flex-direction:column;gap:8px;z-index:5}
+  .zoom-btn{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.88);font-size:20px;color:#6b6357;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .bubble{position:absolute;left:12px;right:12px;bottom:10px;z-index:5;background:rgba(255,255,255,.93);border:1px solid var(--line);border-radius:10px;padding:8px 11px;font-size:11px;color:#6b5c44;line-height:1.5}
+  .culture-note{position:absolute;left:12px;top:12px;z-index:5;font-size:10px;color:#7a6d58;background:rgba(255,255,255,.82);padding:5px 8px;border-radius:6px;pointer-events:none}
+  .score-chip{position:absolute;right:12px;bottom:52px;z-index:5;background:rgba(74,91,99,.9);color:#fff;border-radius:16px;padding:5px 11px;font-size:11px;pointer-events:none}
+  .cat-tabs{display:flex;gap:8px;overflow-x:auto;padding:10px 0;flex:none;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .cat-tabs::-webkit-scrollbar,.item-strip::-webkit-scrollbar{display:none}
+  .cat-tab{flex:none;padding:8px 16px;border-radius:20px;border:1px solid var(--line);background:#fff;font-size:13px;min-height:40px;cursor:pointer;color:#5b5344}
+  .cat-tab.on{background:#2d2b28;color:#fff;border-color:#2d2b28}
+  .item-strip{display:flex;gap:10px;overflow-x:auto;padding:4px 0 10px;flex:none;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .item-tile{flex:none;width:88px;border:1px solid var(--line);border-radius:10px;background:#fff;padding:6px;text-align:center;cursor:pointer;position:relative}
+  .item-tile.on{border:2px solid var(--clay);box-shadow:0 0 0 2px rgba(169,106,74,.18)}
+  .item-tile.locked{opacity:.48}
+  .item-tile .thumb{height:66px;border-radius:6px;display:flex;align-items:center;justify-content:center;margin-bottom:4px;overflow:hidden}
+  .item-tile .thumb svg{width:100%;height:100%}
+  .item-tile .nm{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .item-tile .fl{font-size:9px;color:var(--clay);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dress-foot{position:fixed;bottom:0;left:0;right:0;z-index:30;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:rgba(247,242,234,.97);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-top:1px solid var(--line)}
+  .dress-foot .btn{width:100%;background:#2d2b28;font-size:16px}
+  .dress-foot .hint{text-align:center;font-size:11px;color:#9a8d76;margin-top:5px}
+  /* 结算 */
+  .stars{font-size:36px;color:var(--gold);letter-spacing:5px}
+  .score-row{display:flex;align-items:center;gap:10px;margin:8px 0;font-size:13px}
+  .score-row span{width:76px;color:#6b5c44;flex:none}
+  .bar{flex:1;height:9px;background:#e8dfcd;border-radius:6px;overflow:hidden}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--sage),var(--indigo2))}
+  .quote{font-size:16px;line-height:1.9;padding:14px 16px;border-left:4px solid var(--clay);background:#fff9;margin:16px 0}
+  .share-card{background:linear-gradient(135deg,#4a5b63,#81958c);color:#fff;border-radius:var(--r);padding:20px}
+  @media(min-width:820px){main{max-width:1000px}.hub{grid-template-columns:1.1fr 1fr .9fr}.dress-page{height:auto}.stage{height:65vh;flex:none}}
+  @media(max-width:420px){.brand small{display:none}.wallet{gap:6px}.coin{font-size:11px;padding:5px 7px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">织己 <small>WEAVE MYSELF · 独龙江乡</small></div>
+  <div class="wallet">
+    <span class="coin">金币 <b id="coinVal">1300</b></span>
+    <span class="coin">灵感 <b id="inspVal">0</b></span>
+    <button class="reset" onclick="resetAll()">重置</button>
+  </div>
+</header>
+
+<main>
+  <!-- HUB -->
+  <section id="viewHub" class="view active">
+    <h2>工作室 · 采风委托</h2>
+    <p class="sub">第一章 · 云南贡山独龙江乡 —— 江边麻织作坊。体态方案 A：高龄文面老奶奶。</p>
+    <div class="hub">
+      <div class="chapter-card">
+        <h3>Chapter 01<br>独龙江乡 · 江边作坊</h3>
+        <p>采风触发：你在江边麻织作坊遇见她正在织独龙毯。<br>委托人阿妮，72 岁。腰背微驼、手部关节变形。<br>她想要：保留独龙毯条纹纹样，面料软一点、肩带加宽、宽松不压肩，日常与小型祭祀都能穿。</p>
+        <button class="btn warm" style="margin-top:16px" onclick="go('viewDialogue')">走进作坊 →</button>
+      </div>
+      <div class="panel">
+        <h3 style="margin-top:0;color:var(--indigo)">委托人档案 · 阿妮</h3>
+        <div class="profile-mini">
+          <div class="avatar-mini"><svg viewBox="0 0 60 60"><circle cx="30" cy="22" r="12" fill="#b98b6a"/><path d="M14 58 Q16 36 30 36 Q46 36 46 58Z" fill="#5a5048"/></svg></div>
+          <div><b>阿妮 · 72 岁</b><br><small style="color:#82765f">独龙族 · 独龙江乡</small></div>
+        </div>
+        <div><span class="tag">高龄体态</span><span class="tag">腰背微驼</span><span class="tag">手部关节变形</span><span class="tag">皮肤松弛</span><span class="tag">文面（历史印记）</span></div>
+        <div class="notice" style="margin-top:12px">文化约束：独龙毯条纹为族群传统纹样，<b>不可修改</b>；文面是族群历史印记，本 Demo 仅以文字说明，不绘制具体纹样。实际制作须由独龙族文化顾问审校。</div>
+      </div>
+      <div class="panel">
+        <h3 style="margin-top:0;color:var(--indigo)">关卡目标</h3>
+        <div class="task"><i class="dot"></i><div><b>CH1_L1 · 日常与小型祭祀</b><span>场景：江边作坊 / 村寨节庆 · 需弯腰采集</span></div></div>
+        <div class="task"><i class="dot" style="background:var(--sage)"></i><div><b>痛点清单</b><span>硬麻勒肩 · 盛装太沉 · 弯腰不便</span></div></div>
+        <div class="task"><i class="dot" style="background:var(--indigo)"></i><div><b>通关奖励</b><span>金币 +200 · 灵感 +5 · 图纸解锁</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 对话 -->
+  <section id="viewDialogue" class="view">
+    <h2>作坊对话 · 她在讲，你来回应</h2>
+    <p class="sub">她主动讲明需求；你从 2–3 个答复中选一个，她会回应，并影响信任度与评分。</p>
+    <div class="dialogue-box">
+      <div class="speaker" id="speaker"></div>
+      <div class="dialogue-text" id="dialogueText"></div>
+      <div id="replyArea"></div>
+      <div class="dialogue-foot">
+        <span class="progress" id="dialogueProgress"></span>
+        <button class="btn" id="dialogueNext" onclick="nextStep()" style="display:none">继续 →</button>
+      </div>
+    </div>
+    <div style="text-align:right;margin-top:14px"><button class="btn ghost" onclick="go('viewHub')">返回工作室</button></div>
+  </section>
+
+  <!-- 商城 -->
+  <section id="viewShop" class="view">
+    <h2>独龙江乡 · 江边作坊</h2>
+    <p class="sub">在地手作：条纹纹样不可改，能改的是底布、肩带和版型。免费基础款可直接选。</p>
+    <div class="shop-grid" id="shopGrid"></div>
+    <div style="display:flex;gap:10px;margin-top:18px">
+      <button class="btn ghost" style="flex:1" onclick="go('viewDialogue')">← 再听一遍</button>
+      <button class="btn" style="flex:1" onclick="go('viewDress')">进入换装 →</button>
+    </div>
+  </section>
+
+  <!-- 换装页（参考图排版） -->
+  <section id="viewDress" class="view">
+    <div class="dress-page">
+      <div class="dress-header">
+        <button class="hd-btn" onclick="go('viewShop')">← 作坊</button>
+        <div class="dress-title">换装<small>DRESS UP · 自由穿搭</small></div>
+        <button class="hd-btn" onclick="go('viewResult')">搭配记录</button>
+      </div>
+      <div class="stage" id="stage">
+        <div class="culture-note">纹样保留 · 不绘制文面图案</div>
+        <div class="zoom-tools">
+          <button class="zoom-btn" onclick="zoom(0.15)">＋</button>
+          <button class="zoom-btn" onclick="zoom(-0.15)">－</button>
+        </div>
+        <div id="avatarBox"></div>
+        <div class="score-chip" id="scoreChip">匹配度 —</div>
+        <div class="bubble" id="bubble">提示：配饰可直接用手指拖动，不会跑出换装区。</div>
+      </div>
+      <div class="cat-tabs" id="catTabs"></div>
+      <div class="item-strip" id="itemStrip"></div>
+    </div>
+    <div class="dress-foot">
+      <button class="btn" onclick="submit()">完成搭配</button>
+      <div class="hint">配饰可自由移动 · 独龙毯纹样不可修改</div>
+    </div>
+  </section>
+
+  <!-- 结算 -->
+  <section id="viewResult" class="view">
+    <h2>委托结算 · CH1_L1</h2>
+    <p class="sub">五维反馈 · 信任变化 · 故事推进</p>
+    <div class="panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+        <div><div class="stars" id="stars"></div><div id="totalScore" style="font-size:20px;font-weight:700;color:var(--indigo)"></div></div>
+        <div style="text-align:right;font-size:12px;color:#7a6d58" id="rewardText"></div>
+      </div>
+      <div id="scoreBars" style="margin-top:16px"></div>
+      <div class="quote" id="npcQuote"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn warm" onclick="go('viewResultShare')">生成分享卡片</button>
+        <button class="btn ghost" onclick="retry()">重新搭配</button>
+        <button class="btn ghost" onclick="resetAll()">重新开始</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="viewResultShare" class="view">
+    <h2>分享卡片</h2>
+    <p class="sub">自动脱敏：只输出风格标签与故事，不输出精确体征数据，不展示文面图案。</p>
+    <div class="share-card" id="shareCard"></div>
+    <div style="margin-top:16px;display:flex;gap:10px">
+      <button class="btn" onclick="copyShare()">复制文案</button>
+      <button class="btn ghost" onclick="go('viewResult')">← 返回结算</button>
+    </div>
+  </section>
+</main>
+
+<script>
+/* ============ 对话数据：NPC 讲述 + 主控回应 ============ */
+const DIALOGUE=[
+  {who:"阿妮 · 江边麻织作坊",text:"你来了。我在这江边织了五十年的独龙毯。\n你看这条纹——老祖宗传下来的，一根线都不能改。人老了，眼睛不如从前，可这纹样我闭着眼也认得。",
+   opts:[{id:"keep",text:"纹样我一根线都不动，只换底布、加宽肩带。",reply:"「好。你懂这个理，我就放心了。」",trust:1,culture:3,expr:2},
+         {id:"simplify",text:"这纹样太密了，稍微简化一点会不会更轻便？",reply:"「……改不得。那是老祖宗的话，不是花样。」",trust:-1,culture:-6,expr:-2},
+         {id:"listen",text:"我先记下：纹样原样保留，其他交给我。",reply:"「嗯，你先听着。慢慢来。」",trust:0,culture:1}]},
+  {who:"阿妮 · 江边麻织作坊",text:"背驼了，手指头也不听使唤。采野菜、烧火，都得弯下去。\n以前那件衣服，肩颈两根带子细得很，勒得疼。盛装一穿一整天，肩膀受不了。",
+   opts:[{id:"wide",text:"肩带加宽，肩颈再加一层减压衬；弯腰的版型也算进去。",reply:"「宽了好。弯下去不勒，才叫衣服。」",trust:1,body:4,expr:2},
+         {id:"straighten",text:"我给您做件挺括的，把背撑起来，看着就精神。",reply:"「驼是改不了的。衣服要跟着人，不是人跟着衣服。」",trust:-1,body:-5},
+         {id:"lighter",text:"我明白了，盛装也得减重。",reply:"「减点重，我能多穿一会儿。」",trust:0,body:2}]},
+  {who:"阿妮 · 江边麻织作坊",text:"我想要软一点的麻布，带子加宽，宽松不压肩。\n弯下去的时候别勒着，站直了也别垮。日常穿得，小型祭祀也穿得。不用花哨。",
+   opts:[{id:"plain",text:"软麻、宽肩带、宽松版型，不加任何装饰。",reply:"「这就对了。我要的是能过日子的衣服。」",trust:1,body:3,culture:2,expr:3},
+         {id:"sequin",text:"节庆得有点亮片才体面，我给您加一点。",reply:"「太花哨了，我穿不出去。」",trust:-1,culture:-4,expr:-3},
+         {id:"two",text:"先按日常做，节庆那版再单独调。",reply:"「两版也行。纹样别动就好。」",trust:0,expr:1}]},
+  {who:"阿妮 · 江边麻织作坊",text:"不用花哨。纹样给我留着，别的你看着办。\n这件衣服，是我要穿去采菜的，也是要穿去见祖宗的。",
+   opts:[{id:"both",text:"那我让它两处都能穿——日常耐劳作，祭祀也体面。",reply:"「好。那你去做吧。」",trust:1,expr:3,scene:2},
+         {id:"dignity",text:"放心，纹样和您的尊严我都留着。",reply:"「……你这话，我记下了。」",trust:1,expr:4,culture:2},
+         {id:"try",text:"我尽力，做好了给您看。",reply:"「去吧。我等着。」",trust:0}]}
+];
+
+/* ============ 单品（8 大品类） ============ */
+const ITEMS=[
+  {id:"natural_makeup",name:"自然妆容",part:"makeup",price:0,color:"#e8c4b0",desc:"清淡自然，不覆盖她本来的样子。",fit:[],hint:"✓ 不覆盖文面",lock:""},
+  {id:"festival_makeup",name:"节庆淡妆",part:"makeup",price:120,color:"#d98f7a",desc:"唇颊略添红色，干净庄重。",fit:["festival"],hint:"✓ 适合小型祭祀",lock:""},
+  {id:"simple_hair",name:"素发挽髻",part:"hair",price:0,color:"#d8d4cb",desc:"简单挽起，不遮视线，方便劳作。",fit:[],hint:"✓ 日常易用",lock:""},
+  {id:"braid_hair",name:"节庆编发",part:"hair",price:100,color:"#cfc9bb",desc:"编入一小段彩线，庄重不花哨。",fit:["festival"],hint:"✓ 节庆适用",lock:""},
+  {id:"soft_top",name:"宽肩软麻上衣",part:"top",price:220,color:"#8c846c",desc:"交领宽肩带，弯腰时不堆在腰上。",fit:["wide_strap","soft","easy_bend"],hint:"✓ 宽肩带；✓ 弯腰友好",lock:""},
+  {id:"wrap_skirt",name:"宽松围腰筒裙",part:"bottom",price:200,color:"#5b5548",desc:"围腰可调，下摆宽松，方便蹲坐弯腰。",fit:["easy_bend","loose"],hint:"✓ 弯腰/蹲坐友好",lock:""},
+  {id:"loose_robe",name:"宽松袍装",part:"dress",price:280,color:"#6a5b4c",desc:"一件式袍装，纹样原样保留，弯腰不跑位。",fit:["pattern_preserved","loose","easy_bend"],hint:"✓ 纹样原样；✓ 一件式",lock:"纹样不可修改"},
+  {id:"soft_blanket",name:"软底独龙毯披肩",part:"outer",price:380,color:"#6a5b4c",desc:"保留原条纹，底布改软麻，肩带加宽。",fit:["pattern_preserved","soft_base","wide_strap"],hint:"✓ 纹样原样；✓ 宽肩带",lock:"纹样不可修改，仅底布与肩带可调"},
+  {id:"light_festival",name:"轻量节庆独龙毯",part:"outer",price:300,color:"#7d6a55",desc:"纹样不变，织法减重，适合小型祭祀。",fit:["pattern_preserved","lightweight"],hint:"✓ 纹样保留；✓ 轻量",lock:"纹样不可修改"},
+  {id:"heavy_ritual",name:"厚重传统盛装",part:"outer",price:260,color:"#4a4036",desc:"完整传统盛装，纹样正确但厚重、窄肩带。",fit:["pattern_preserved","heavy","narrow_strap"],hint:"! 太沉、肩带细，久穿勒肩",lock:"纹样不可修改"},
+  {id:"shoulder_pad",name:"肩颈减压衬",part:"accessory",price:150,color:"#b39a72",desc:"垫在系带与肩颈之间，可拖动位置。",fit:["wide_strap","pressure_relief"],hint:"✓ 可自由移动",lock:""},
+  {id:"embroidery_pin",name:"单侧刺绣饰片",part:"accessory",price:160,color:"#b8734f",desc:"一小片刺绣，位置由你决定。",fit:["reveal_option"],hint:"✓ 可自由移动",lock:""},
+  {id:"workshop_bg",name:"江边作坊",part:"background",price:0,color:"#e6e1d0",desc:"江水与织机的采风背景。",fit:[],hint:"✓ 采风地点",lock:""},
+  {id:"village_bg",name:"村寨节庆",part:"background",price:150,color:"#e8d8c0",desc:"节庆时的村寨背景。",fit:["festival"],hint:"✓ 小型祭祀场景",lock:""}
+];
+const PART_LABEL={makeup:"妆容",hair:"发型",top:"上衣",bottom:"下装",dress:"连衣裙",outer:"外套",accessory:"配饰",background:"背景"};
+const DEFAULT_OWNED=["natural_makeup","simple_hair","workshop_bg"];
+const DEFAULT_EQ={makeup:"natural_makeup",hair:"simple_hair",top:null,bottom:null,dress:null,outer:null,accessory:null,background:"workshop_bg"};
+
+const S={view:"viewHub",coins:1300,insp:0,dialogueStep:0,choices:[],trust:0,adj:{scene:0,body:0,expr:0,culture:0},
+  owned:[...DEFAULT_OWNED],equipped:{...DEFAULT_EQ},cat:"makeup",zoom:1,accPos:{x:0,y:0},result:null};
+
+const $=id=>document.getElementById(id);
+const itemById=id=>ITEMS.find(i=>i.id===id);
+function updateWallet(){$("coinVal").textContent=S.coins;$("inspVal").textContent=S.insp;}
+function go(id){document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));$(id).classList.add("active");S.view=id;window.scrollTo(0,0);
+  if(id==="viewDialogue")renderDialogue();if(id==="viewShop")renderShop();if(id==="viewDress")renderDress();if(id==="viewResultShare")renderShare();}
+function resetAll(){Object.assign(S,{coins:1300,insp:0,dialogueStep:0,choices:[],trust:0,adj:{scene:0,body:0,expr:0,culture:0},owned:[...DEFAULT_OWNED],equipped:{...DEFAULT_EQ},cat:"makeup",zoom:1,accPos:{x:0,y:0},result:null});updateWallet();go("viewHub");}
+
+/* 对话 */
+function renderDialogue(){const d=DIALOGUE[S.dialogueStep],chosen=S.choices[S.dialogueStep];
+  $("speaker").textContent=d.who;$("dialogueText").textContent=d.text;
+  $("dialogueProgress").textContent=`第 ${S.dialogueStep+1}/${DIALOGUE.length} 段 · 信任 ${S.trust>=0?"+":""}${S.trust}`;
+  const a=$("replyArea");
+  if(!chosen){a.innerHTML=`<div style="font-size:12px;color:#8a7c66;margin-top:18px">你的答复：</div>`+d.opts.map((o,i)=>`<button class="reply-opt" onclick="choose(${i})">${o.text}</button>`).join("");$("dialogueNext").style.display="none";}
+  else{const o=d.opts.find(x=>x.id===chosen);a.innerHTML=`<div style="font-size:12px;color:#4a5b63;margin-top:18px">你：${o.text}</div><div class="reply-npc">${o.reply}</div>`;$("dialogueNext").style.display="inline-block";$("dialogueNext").textContent=S.dialogueStep<DIALOGUE.length-1?"继续 →":"听完了，去作坊 →";}}
+function choose(i){const o=DIALOGUE[S.dialogueStep].opts[i];if(S.choices[S.dialogueStep])return;
+  S.choices[S.dialogueStep]=o.id;S.trust+=o.trust;for(const k of ["scene","body","expr","culture"])if(o[k])S.adj[k]+=o[k];renderDialogue();}
+function nextStep(){if(S.dialogueStep<DIALOGUE.length-1){S.dialogueStep++;renderDialogue();}else go("viewShop");}
+
+/* 商城 */
+function renderShop(){$("shopGrid").innerHTML=ITEMS.map(it=>{const owned=S.owned.includes(it.id);return `<div class="item-card">
+  <div class="swatch" style="background:${it.color}"><svg viewBox="0 0 200 90" preserveAspectRatio="none"><path d="M0 12 h200 M0 30 h200 M0 48 h200 M0 66 h200" stroke="rgba(255,255,255,.25)" stroke-width="4"/></svg></div>
+  <h4>${it.name} <span style="font-size:10px;color:#8a7c66">${PART_LABEL[it.part]}</span></h4><p>${it.desc}</p><div class="fit-hint">${it.hint}</div>
+  ${it.lock?`<div class="pattern-lock">🔒 ${it.lock}</div>`:""}
+  <div style="margin-top:8px"><span class="price">${it.price===0?"免费":it.price+" 金"}</span>
+  <button class="buy ${owned?"owned":""}" ${owned||S.coins<it.price?"disabled":""} onclick="buy('${it.id}')">${owned?"已拥有":(S.coins<it.price?"金币不足":"购买")}</button></div></div>`;}).join("");}
+function buy(id){const it=itemById(id);if(S.owned.includes(id)||S.coins<it.price)return;S.coins-=it.price;S.owned.push(id);updateWallet();renderShop();}
+
+/* ===== 换装页 ===== */
+function renderDress(){
+  $("catTabs").innerHTML=Object.keys(PART_LABEL).map(p=>`<button class="cat-tab ${S.cat===p?"on":""}" onclick="setCat('${p}')">${PART_LABEL[p]}</button>`).join("");
+  const list=ITEMS.filter(i=>i.part===S.cat);
+  $("itemStrip").innerHTML=list.map(it=>{const owned=S.owned.includes(it.id),on=S.equipped[S.cat]===it.id;
+    return `<div class="item-tile ${on?"on":""} ${owned?"":"locked"}" onclick="wear('${it.id}')">
+      <div class="thumb" style="background:${it.color}"><svg viewBox="0 0 60 60"><path d="M18 10 L42 10 L48 50 L12 50Z" fill="rgba(255,255,255,.28)"/><path d="M20 20 h20 M20 30 h20" stroke="rgba(255,255,255,.4)" stroke-width="2"/></svg></div>
+      <div class="nm">${it.name}</div><div class="fl">${owned?(on?"已穿戴":"可穿戴"):"未解锁"}</div></div>`;}).join("");
+  renderAvatar();renderLive();
+}
+function setCat(p){S.cat=p;renderDress();}
+function wear(id){const it=itemById(id);if(!S.owned.includes(id))return;
+  if(it.part==="dress"){S.equipped.dress=S.equipped.dress===id?null:id;if(S.equipped.dress){S.equipped.top=null;S.equipped.bottom=null;}}
+  else{S.equipped[it.part]=S.equipped[it.part]===id?null:id;}
+  if(!S.equipped.accessory)S.accPos={x:0,y:0};renderDress();}
+function zoom(d){S.zoom=Math.max(.7,Math.min(1.5,S.zoom+d));renderAvatar();}
+function equippedItems(){return Object.values(S.equipped).filter(Boolean).map(itemById);}
+function hasFit(tag){return equippedItems().some(i=>i.fit.includes(tag));}
+
+/* 参数化 SVG：驼背、关节手、纹样不改；配饰为可拖拽图层 */
+function renderAvatar(){
+  const eq=S.equipped,skin="#b98b6a";let L="";
+  L+=`<rect x="0" y="0" width="300" height="440" fill="${itemById(eq.background||"workshop_bg").color}" opacity=".35"/>`;
+  if(eq.background==="village_bg")L+=`<path d="M0 300 Q50 270 100 300 T200 300 T300 300 L300 440 L0 440Z" fill="rgba(120,100,70,.18)"/>`;
+  else L+=`<path d="M0 390 q25 -6 50 0 t50 0 t50 0 t50 0 t50 0 t50 0" stroke="#8fa69e" fill="none" stroke-width="2" opacity=".7"/>
+    <path d="M18 70 L18 280 M18 95 L95 95 M95 95 L95 280" stroke="#8b7355" stroke-width="5" fill="none" opacity=".55"/>`;
+  // 腿
+  L+=`<path d="M128 232 L120 372 L146 372 L150 238Z" fill="${skin}"/><path d="M156 238 L160 372 L186 372 L178 232Z" fill="${skin}"/>`;
+  const torso=`M126 118 Q150 104 176 116 L182 232 L122 232Z`;
+  L+=`<path d="${torso}" fill="${skin}"/>`;
+  // 手臂 + 关节手
+  L+=`<path d="M128 122 L104 206 L118 268 M176 120 L208 208 L196 268" stroke="${skin}" stroke-width="15" stroke-linecap="round" fill="none"/>`;
+  L+=`<circle cx="118" cy="268" r="8" fill="${skin}"/><circle cx="113" cy="274" r="4" fill="#a9795c"/><circle cx="121" cy="275" r="4" fill="#a9795c"/>
+      <circle cx="196" cy="268" r="8" fill="${skin}"/><circle cx="192" cy="274" r="4" fill="#a9795c"/><circle cx="200" cy="275" r="4" fill="#a9795c"/>`;
+  // 下装 / 连衣裙
+  if(eq.dress==="loose_robe"){
+    L+=`<path d="M120 228 L182 228 L198 380 L104 380Z" fill="#6a5b4c"/>
+        <path d="M116 250 h70 M116 268 h70 M116 286 h70" stroke="#c9b28a" stroke-width="4" opacity=".8"/>`;
+  }else{
+    if(eq.bottom==="wrap_skirt")L+=`<path d="M120 228 L182 228 L192 380 L110 380Z" fill="#5b5548"/><path d="M120 250 h62" stroke="#8c846c" stroke-width="4"/>`;
+    else L+=`<path d="M124 232 L176 232 L174 300 L126 300Z" fill="#e5d8c3" opacity=".9"/>`;
+  }
+  // 上衣
+  if(eq.top==="soft_top")L+=`<path d="M128 122 Q152 138 176 120 L178 224 L126 224Z" fill="#8c846c"/><path d="M128 122 L104 206 L118 268 M176 120 L208 208 L196 268" stroke="#8c846c" stroke-width="12" stroke-linecap="round" fill="none" opacity=".9"/>`;
+  // 外套：条纹为独龙毯纹样
+  if(eq.outer){const c=itemById(eq.outer).color;
+    L+=`<path d="M126 120 L152 132 L148 248 L110 226Z" fill="${c}"/><path d="M176 118 L154 132 L160 248 L202 224Z" fill="${c}"/>
+        <path d="M116 150 h30 M116 164 h30 M116 178 h30 M160 150 h30 M160 164 h30 M160 178 h30" stroke="#c9b28a" stroke-width="4" opacity=".85"/>
+        <path d="M128 122 L104 206 M176 120 L208 208" stroke="${c}" stroke-width="11" stroke-linecap="round" fill="none" opacity=".85"/>`;}
+  // 头 + 发型 + 妆容（不绘制文面图案）
+  L+=`<circle cx="150" cy="68" r="27" fill="${skin}"/>`;
+  if(eq.hair==="braid_hair")L+=`<path d="M124 64 Q150 30 176 64 Q166 46 150 45 Q134 46 124 64Z" fill="#cfc9bb"/><path d="M124 64 q-8 20 -4 40 M176 64 q8 20 4 40" stroke="#cfc9bb" stroke-width="6" fill="none"/>`;
+  else L+=`<path d="M123 64 Q150 30 177 64 Q168 46 150 45 Q132 46 123 64Z" fill="#d8d4cb"/>`;
+  L+=`<path d="M132 76 q6 3 12 0 M156 76 q6 3 12 0" stroke="#7d5b47" stroke-width="1.5" fill="none"/>`;
+  if(eq.makeup==="festival_makeup")L+=`<path d="M138 84 q12 5 24 0" stroke="#b45f52" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="136" cy="76" r="5" fill="#d98f7a" opacity=".45"/><circle cx="164" cy="76" r="5" fill="#d98f7a" opacity=".45"/>`;
+  // 配饰：独立可拖拽图层
+  if(eq.accessory){
+    const ac=itemById(eq.accessory);
+    L+=`<g id="accLayer" transform="translate(${S.accPos.x},${S.accPos.y})" style="cursor:grab">
+      ${eq.accessory==="shoulder_pad"?`<path d="M120 114 Q130 106 144 114 L140 136 L120 130Z" fill="${ac.color}"/><path d="M160 112 Q172 106 180 116 L186 132 L164 128Z" fill="${ac.color}"/>`
+      :`<path d="M118 116 L140 120 L136 142 L112 132Z" fill="${ac.color}"/><path d="M120 126 l5 -5 5 5 -5 5Z" fill="#f0d9a8"/>`}
+      <rect x="106" y="104" width="90" height="44" fill="transparent"/>
+    </g>`;}
+  $("avatarBox").innerHTML=`<div id="avatarScale" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;transform:scale(${S.zoom});transform-origin:center"><svg viewBox="0 0 300 440" style="width:100%;height:100%;max-width:420px">${L}</svg></div>`;
+  bindDrag();
+  let m=[];
+  if(hasFit("pattern_preserved"))m.push("✓ 条纹原样保留");
+  if(hasFit("wide_strap"))m.push("✓ 宽肩带不勒肩");
+  if(hasFit("soft")||hasFit("soft_base"))m.push("✓ 柔软面料");
+  if(hasFit("easy_bend"))m.push("✓ 弯腰友好");
+  if(hasFit("heavy"))m.push("⚠ 太沉，压肩");
+  if(hasFit("narrow_strap"))m.push("⚠ 细肩带勒疼");
+  $("bubble").textContent=m.length?m.join(" · "):"提示：点下方分类挑选单品；配饰可直接用手指拖动。";
+}
+/* 配饰拖拽：限制在换装区（viewBox 300×440）内 */
+let drag=null;
+function bindDrag(){
+  const stage=$("stage");
+  stage.onpointerdown=e=>{
+    const g=document.getElementById("accLayer");
+    if(!g||!e.target.closest("#accLayer"))return;
+    const r=stage.getBoundingClientRect();
+    const rect=g.getBoundingClientRect();
+    drag={sx:e.clientX,sy:e.clientY,ox:S.accPos.x,oy:S.accPos.y,r,rect,g};
+    stage.setPointerCapture(e.pointerId);e.preventDefault();
+  };
+  stage.onpointermove=e=>{
+    if(!drag)return;
+    const svgW=drag.r.width,svgH=drag.r.height;
+    let dx=(e.clientX-drag.sx)/svgW*300,dy=(e.clientY-drag.sy)/svgH*440;
+    let nx=drag.ox+dx,ny=drag.oy+dy;
+    nx=Math.max(-90,Math.min(90,nx));ny=Math.max(-100,Math.min(110,ny));
+    S.accPos={x:nx,y:ny};drag.g.setAttribute("transform",`translate(${nx},${ny})`);
+  };
+  stage.onpointerup=()=>{drag=null;};
+  stage.onpointercancel=()=>{drag=null;};
+}
+
+/* 评分 */
+function rawScores(){let s={scene:18,body:55,expr:50,culture:45,craft:35};
+  for(const k of ["scene","body","expr","culture"])s[k]+=S.adj[k];
+  const ids=equippedItems().map(i=>i.id),has=d=>ids.includes(d);
+  if(has("soft_blanket")){s.body+=9;s.culture+=8;s.expr+=5;s.scene+=4;}
+  if(has("soft_top")){s.body+=8;s.scene+=3;}
+  if(has("wrap_skirt")){s.body+=7;s.scene+=2;}
+  if(has("shoulder_pad"))s.body+=5;
+  if(has("light_festival")){s.body+=4;s.culture+=8;s.scene+=4;}
+  if(has("heavy_ritual")){s.body-=13;s.expr-=4;s.scene+=2;}
+  if(has("loose_robe")){s.body+=10;s.culture+=6;s.scene+=4;s.expr+=2;}
+  if(has("natural_makeup"))s.expr+=2;
+  if(has("simple_hair"))s.body+=2;
+  if(has("workshop_bg"))s.scene+=2;
+  if(has("festival_makeup")||has("braid_hair")||has("village_bg")){s.scene+=3;s.culture+=2;}
+  if(has("embroidery_pin")){s.expr+=6;s.body+=2;}
+  if(!S.equipped.outer)s.scene-=6;
+  if(!S.equipped.top&&!S.equipped.dress)s.scene-=4;
+  if(!S.equipped.bottom&&!S.equipped.dress)s.scene-=5;
+  if(!ids.some(id=>["soft_blanket","light_festival","heavy_ritual","loose_robe"].includes(id)))s.culture-=10;
+  for(const k in s)s[k]=Math.max(0,Math.min(100,s[k]));return s;}
+function evaluate(){const s=rawScores(),w={scene:.25,body:.25,expr:.20,culture:.20,craft:.10};let total=Object.keys(w).reduce((a,k)=>a+s[k]*w[k],0)*.9;
+  const ids=equippedItems().map(i=>i.id);
+  if(["soft_blanket","soft_top","wrap_skirt","shoulder_pad"].every(x=>ids.includes(x)))total+=6;
+  if(["loose_robe","shoulder_pad","natural_makeup","workshop_bg"].every(x=>ids.includes(x)))total+=6;
+  if(ids.includes("heavy_ritual"))total-=5;
+  total=Math.round(Math.max(0,Math.min(100,total)));
+  return{s,total,stars:total>=90?3:total>=75?2:total>=60?1:0};}
+function renderLive(){const{s,total,stars}=evaluate();$("scoreChip").textContent=`匹配度 ${total} ${"★".repeat(stars)}`;}
+function submit(){S.result=evaluate();const r=S.result;
+  $("stars").textContent="★".repeat(r.stars)+"☆".repeat(3-r.stars);$("totalScore").textContent=`总分 ${r.total}/100`;
+  $("rewardText").innerHTML=`金币 +200 · 灵感 +5<br>信任度 ${S.trust>=0?"+":""}${S.trust} · ${r.stars>=2?"解锁图纸「宽肩软麻」":"未解锁"}`;
+  $("scoreBars").innerHTML=Object.entries(r.s).map(([k,v])=>`<div class="score-row"><span>${({scene:"场合契合",body:"体态适配",expr:"自我表达",culture:"文化尊重",craft:"工艺完成"})[k]}</span><div class="bar"><i style="width:${v}%"></i></div><b>${Math.round(v)}</b></div>`).join("");
+  $("npcQuote").textContent=r.total>=85?"「条纹一点没动，肩膀也不疼了。这才是我能穿去采菜、也能穿去见祖宗的衣服。」":r.total>=70?"「软和多了。就是弯下去的时候，腰这里还有点紧。」":"「谢谢你。可是这布还是太沉，我怕弯一次腰就撑不住……」";
+  S.coins+=200;S.insp+=5;updateWallet();go("viewResult");}
+function retry(){go("viewDress");}
+function renderShare(){const r=S.result||evaluate(),worn=equippedItems().map(i=>i.name).join(" · ")||"尚未搭配";
+  $("shareCard").innerHTML=`<div style="font-size:12px;opacity:.8;letter-spacing:2px">织己 · WEAVE MYSELF</div><h2 style="color:#fff;margin:10px 0">为此时此地的这个人</h2>
+  <p style="line-height:1.9;opacity:.95">云南 · 贡山独龙江乡 · 江边作坊<br>她要的很简单：条纹留住，肩膀松一点，能弯得下腰。</p>
+  <div style="border-top:1px solid rgba(255,255,255,.3);padding-top:12px;margin-top:12px;font-size:13px">搭配：${worn}<br>风格标签：#纹样原样保留 #宽肩带 #柔软麻织 #弯腰友好<br>匹配度 ${r.total} · ${"★".repeat(r.stars)}</div>`;}
+function copyShare(){const t=$("shareCard").innerText;if(navigator.clipboard)navigator.clipboard.writeText(t).then(()=>alert("分享文案已复制")).catch(()=>alert(t));else alert(t);}
+updateWallet();
+</script>
+</body>
+</html>
